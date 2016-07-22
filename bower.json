@@ -1,0 +1,20 @@
+{
+  "name": "generator-jquery-bootstrap-simple",
+  "authors": ["Julian Sadowski"],
+  "description": "Simple jQuery & Bootstrap generator ready to develop/test js/html code.",
+  "main": "",
+  "moduleType": [],
+  "license": "MIT",
+  "homepage": "",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bootstrap": "~3.3.6",
+    "jquery": "~2.2.0"
+  }
+}

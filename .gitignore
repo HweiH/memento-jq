@@ -1,0 +1,7 @@
+/node_modules
+/.vagrant
+/.idea
+.DS_Store
+/public/.sass-cache
+/public/sass/.sass-cache
+/public/bower_components
