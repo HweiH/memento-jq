@@ -1,6 +1,6 @@
 /**
  * 加载器
- * @type {{getObj: helper.getObj}}
+ * @type {{Constant: {imgFigures: Array, ctrlUnits: Array, centerPos: {left: number, right: number}, hPosRange: {leftSecX: number[], rightSecX: number[], y: number[]}, vPosRange: {x: number[], topY: number[]}}, State: {imgsArrangeArr: Array}, getObj: helper.getObj, renderImgFigure: helper.renderImgFigure, renderCtrlUnit: helper.renderCtrlUnit, getElements: helper.getElements, mounting: helper.mounting, get30DegRandom: helper.get30DegRandom, getRangeRandom: helper.getRangeRandom, rearrange: helper.rearrange}}
  */
 var helper = {
     // 常量参数
@@ -37,6 +37,29 @@ var helper = {
         ]
     },
     /**
+     * 更新状态数据同时刷新
+     * @param obj
+     */
+    setState: function(obj) {
+        // 更新状态数据
+        if('object' === typeof obj) {
+            helper.State = obj;
+        }
+        // 刷新
+        $.each(helper.State.imgsArrangeArr, function(i, data) {
+            var $singleImgFigure = helper.Constant.imgFigures[i];
+            var $singleCtrlUnit = helper.Constant.ctrlUnits[i];
+            // 移除附加的Class
+            $singleImgFigure.removeClass('is-center').removeClass('is-inverse');
+            $singleCtrlUnit.removeClass('is-center').removeClass('is-inverse');
+            // 移除旋转的角度样式
+            $singleImgFigure.removeAttr('style');
+            // 重新渲染
+            helper.renderImgFigure(i, $singleImgFigure);
+            helper.renderCtrlUnit(i, $singleCtrlUnit);
+        });
+    },
+    /**
      * 对象加载的公共方法
      * @param url
      * @returns {Array}
@@ -53,19 +76,57 @@ var helper = {
         $.ajaxSettings.async = true;
         return temp;
     },
+    /**
+     * 翻转
+     * @param index
+     */
+    inverse: function(index) {
+        var imgsArrangeArr = helper.State.imgsArrangeArr;
+        imgsArrangeArr[index].isInverse = !imgsArrangeArr[index].isInverse;
+        // 更新数据，重新排布
+        helper.setState({
+            imgsArrangeArr: imgsArrangeArr
+        });
+    },
+    /**
+     * 居中
+     * @param index
+     */
+    center: function(index) {
+        helper.rearrange(index);
+    },
+    /**
+     * 渲染每张图片
+     * @param index
+     * @param $imgFigure
+     * @param data
+     * @returns {*}
+     */
     renderImgFigure: function(index, $imgFigure, data) {
-
+        // 是否初始化
         if(data) {
-            // 为每张图片、每个控制点添加属性等要素
+            // 为每张图片添加属性等要素
             $imgFigure.find('img[alt="default.gif"]').attr({
                 'src': data.imageURL,
                 'alt': data.title
             });
             $imgFigure.find('h2.img-title').html(data.title);
             $imgFigure.find('div.img-back p').html(data.desc);
+            // 添加点击事件
+            $imgFigure.bind('click', function(e) {
+                if(helper.State.imgsArrangeArr[index].isCenter) {
+                    helper.inverse(index);  // 翻转
+                } else {
+                    helper.center(index);   // 移到中间
+                }
+                // 阻止事件冒泡以及默认的行为
+                e.stopPropagation();
+                e.preventDefault();
+            });
         }
-
+        // 状态数据对象
         var indexImgsArrangeArr = helper.State.imgsArrangeArr[index];
+        // 样式对象
         var styleObj = {};
         // 如果指定了这张图片的位置，则使用
         if(indexImgsArrangeArr.pos) {
@@ -90,8 +151,29 @@ var helper = {
         $imgFigure.css(styleObj);
         return $imgFigure;
     },
+    /**
+     * 渲染每个控制点
+     * @param index
+     * @param $ctrlUnit
+     * @param data
+     * @returns {*}
+     */
     renderCtrlUnit: function(index, $ctrlUnit, data) {
-
+        // 是否初始化
+        if(data) {
+            // 添加点击事件
+            $ctrlUnit.bind('click', function(e) {
+                if(helper.State.imgsArrangeArr[index].isCenter) {
+                    helper.inverse(index);  // 翻转
+                } else {
+                    helper.center(index);   // 移到中间
+                }
+                // 阻止事件冒泡以及默认的行为
+                e.stopPropagation();
+                e.preventDefault();
+            });
+        }
+        // 状态数据对象
         var indexImgsArrangeArr = helper.State.imgsArrangeArr[index];
         // 默认
         $ctrlUnit.addClass('controller-unit');
@@ -244,15 +326,8 @@ var helper = {
         // 合并中间
         imgsArrangeArr.splice(centerIndex, 0, imgsArrangeCenterArr[0]);
         // 更新数据，重新排布
-        helper.State.imgsArrangeArr = imgsArrangeArr;
-        $.each(imgsArrangeArr, function(i, data) {
-            var $singleImgFigure = Constant.imgFigures[i];
-            var $singleCtrlUnit = Constant.ctrlUnits[i];
-            // 移除附加的Class
-            $singleImgFigure.removeClass('is-center').removeClass('is-inverse');
-            $singleCtrlUnit.removeClass('is-center').removeClass('is-inverse');
-            helper.renderImgFigure(i, $singleImgFigure);
-            helper.renderCtrlUnit(i, $singleCtrlUnit);
+        helper.setState({
+            imgsArrangeArr: imgsArrangeArr
         });
     }
 };
